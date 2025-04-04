@@ -59,3 +59,24 @@ foreach ($rows as $row) {
         $posts[$post_id]["comments"][] = $row["comment_content"];
     }
 }
+
+echo "<html><head><title>Ziņas un komentāri</title></head><body>";
+echo "<ol>";
+
+foreach ($posts as $post) {
+    echo "<li><strong>" . htmlspecialchars($post["title"]) . "</strong><br>";
+    echo htmlspecialchars($post["content"]) . "<br>";
+
+    if (!empty($post["comments"])) {
+        echo "<ul>";
+        foreach ($post["comments"] as $comment) {
+            echo "<li>" . htmlspecialchars($comment) . "</li>";
+        }
+        echo "</ul>";
+    }
+
+    echo "</li>";
+}
+
+echo "</ol>";
+echo "</body></html>";
