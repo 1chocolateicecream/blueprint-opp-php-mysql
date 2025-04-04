@@ -39,3 +39,23 @@ try {
 } catch (PDOException $e) {
     die("Vaicājuma kļūda: " . $e->getMessage());
 }
+
+$posts = [];
+
+foreach ($rows as $row) {
+    $post_id = $row['post_id'];
+
+    // Ja ziņa vēl nav saglabāta, saglabājam to
+    if (!isset($posts[$post_id])) {
+        $posts[$post_id] = [
+            "title" => $row["title"],
+            "content" => $row["content"],
+            "comments" => []
+        ];
+    }
+
+    // Ja komentārs eksistē, pievienojam to
+    if (!empty($row["comment_id"])) {
+        $posts[$post_id]["comments"][] = $row["comment_content"];
+    }
+}
