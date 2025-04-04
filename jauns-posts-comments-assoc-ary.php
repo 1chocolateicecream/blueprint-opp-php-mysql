@@ -80,3 +80,5 @@ foreach ($posts as $post) {
 
 echo "</ol>";
 echo "</body></html>";
+
+$pdo = null;
