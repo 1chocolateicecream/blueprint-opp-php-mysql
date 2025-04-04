@@ -24,3 +24,18 @@ try {
 } catch (PDOException $e) {
     die("Savienojuma kļūda: " . $e->getMessage());
 }
+
+$sql = "
+SELECT 
+    p.post_id, p.title, p.content, 
+    c.comment_id, c.comment_content
+FROM posts p
+LEFT JOIN comments c ON p.post_id = c.post_id
+";
+
+try {
+    $stmt = $pdo->query($sql);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Vaicājuma kļūda: " . $e->getMessage());
+}
