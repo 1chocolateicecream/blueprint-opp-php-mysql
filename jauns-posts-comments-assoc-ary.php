@@ -19,6 +19,8 @@ try {
     $dsn = "mysql:host=" . DB_SERVER . ";dbname=" . DB_NAME;
     $pdo = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    echo "Konekcija veiksmīga!";
 } catch (PDOException $e) {
     die("Savienojuma kļūda: " . $e->getMessage());
 }
