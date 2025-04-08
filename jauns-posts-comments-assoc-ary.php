@@ -23,6 +23,8 @@ try {
     die("Savienojuma kļūda: " . $e->getMessage());
 }
 
+
+
 // === KLASSES DEFINĪCIJAS ===
 class Comment
 {
@@ -49,6 +51,22 @@ class Post
     public function addComment(Comment $comment): void
     {
         $this->comments[] = $comment;
+    }
+
+    public function display(): void
+    {
+        echo "<li><strong>" . htmlspecialchars($this->title) . "</strong><br>";
+        echo htmlspecialchars($this->content) . "<br>";
+
+        if (!empty($this->comments)) {
+            echo "<ul>";
+            foreach ($this->comments as $comment) {
+                echo "<li>" . htmlspecialchars($comment->content) . "</li>";
+            }
+            echo "</ul>";
+        }
+
+        echo "</li>";
     }
 }
 
@@ -89,18 +107,7 @@ echo "<html><head><title>Ziņas un komentāri</title></head><body>";
 echo "<ol>";
 
 foreach ($posts as $post) {
-    echo "<li><strong>" . htmlspecialchars($post->title) . "</strong><br>";
-    echo htmlspecialchars($post->content) . "<br>";
-
-    if (!empty($post->comments)) {
-        echo "<ul>";
-        foreach ($post->comments as $comment) {
-            echo "<li>" . htmlspecialchars($comment->content) . "</li>";
-        }
-        echo "</ul>";
-    }
-
-    echo "</li>";
+    $post->display();
 }
 
 echo "</ol>";
