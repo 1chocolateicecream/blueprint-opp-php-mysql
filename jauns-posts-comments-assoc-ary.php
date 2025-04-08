@@ -9,7 +9,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Definējam savienojuma parametrus
+// 1. Izveidot datubāzes savienojumu, izmantojot PDO
 define('DB_SERVER', 'localhost');
 define('DB_NAME', 'posts_db');
 define('DB_USERNAME', 'usserr');
@@ -19,12 +19,40 @@ try {
     $dsn = "mysql:host=" . DB_SERVER . ";dbname=" . DB_NAME;
     $pdo = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    echo "Konekcija veiksmīga!";
 } catch (PDOException $e) {
     die("Savienojuma kļūda: " . $e->getMessage());
 }
 
+// === KLASSES DEFINĪCIJAS ===
+class Comment
+{
+    public string $content;
+
+    public function __construct(string $content)
+    {
+        $this->content = $content;
+    }
+}
+
+class Post
+{
+    public string $title;
+    public string $content;
+    public array $comments = [];
+
+    public function __construct(string $title, string $content)
+    {
+        $this->title = $title;
+        $this->content = $content;
+    }
+
+    public function addComment(Comment $comment): void
+    {
+        $this->comments[] = $comment;
+    }
+}
+
+// 2. Izpildīt LEFT JOIN vaicājumu, lai iegūtu plakanu masīvu
 $sql = "
 SELECT 
     p.post_id, p.title, p.content, 
@@ -40,37 +68,34 @@ try {
     die("Vaicājuma kļūda: " . $e->getMessage());
 }
 
+// 3. Pārveidot plakano masīvu uz hierarhisku asociatīvo masīvu
 $posts = [];
 
 foreach ($rows as $row) {
     $post_id = $row['post_id'];
 
-    // Ja ziņa vēl nav saglabāta, saglabājam to
     if (!isset($posts[$post_id])) {
-        $posts[$post_id] = [
-            "title" => $row["title"],
-            "content" => $row["content"],
-            "comments" => []
-        ];
+        $posts[$post_id] = new Post($row['title'], $row['content']);
     }
 
-    // Ja komentārs eksistē, pievienojam to
-    if (!empty($row["comment_id"])) {
-        $posts[$post_id]["comments"][] = $row["comment_content"];
+    if (!empty($row['comment_id'])) {
+        $comment = new Comment($row['comment_content']);
+        $posts[$post_id]->addComment($comment);
     }
 }
 
+// 4. Ģenerēt HTML sarakstu no asociatīvā masīva
 echo "<html><head><title>Ziņas un komentāri</title></head><body>";
 echo "<ol>";
 
 foreach ($posts as $post) {
-    echo "<li><strong>" . htmlspecialchars($post["title"]) . "</strong><br>";
-    echo htmlspecialchars($post["content"]) . "<br>";
+    echo "<li><strong>" . htmlspecialchars($post->title) . "</strong><br>";
+    echo htmlspecialchars($post->content) . "<br>";
 
-    if (!empty($post["comments"])) {
+    if (!empty($post->comments)) {
         echo "<ul>";
-        foreach ($post["comments"] as $comment) {
-            echo "<li>" . htmlspecialchars($comment) . "</li>";
+        foreach ($post->comments as $comment) {
+            echo "<li>" . htmlspecialchars($comment->content) . "</li>";
         }
         echo "</ul>";
     }
@@ -81,4 +106,6 @@ foreach ($posts as $post) {
 echo "</ol>";
 echo "</body></html>";
 
+// 5. Aizvērt PDO savienojumu (nav obligāti, bet ieteicams)
 $pdo = null;
+?>
