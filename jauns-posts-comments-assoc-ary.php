@@ -6,37 +6,32 @@
 5. Aizvērt PDO savienojumu (nav obligāti, bet ieteicams) -->
 
 <?php
-require_once 'index.php';
-// === KLASSES DEFINĪCIJAS ===
-class Comment
-{
+require_once 'db.php';
+
+// === Klases ===
+class Comment {
     public string $content;
 
-    public function __construct(string $content)
-    {
+    public function __construct(string $content) {
         $this->content = $content;
     }
 }
 
-class Post
-{
+class Post {
     public string $title;
     public string $content;
     public array $comments = [];
 
-    public function __construct(string $title, string $content)
-    {
+    public function __construct(string $title, string $content) {
         $this->title = $title;
         $this->content = $content;
     }
 
-    public function addComment(Comment $comment): void
-    {
+    public function addComment(Comment $comment): void {
         $this->comments[] = $comment;
     }
 
-    public function display(): void
-    {
+    public function display(): void {
         echo "<li><strong>" . htmlspecialchars($this->title) . "</strong><br>";
         echo htmlspecialchars($this->content) . "<br>";
 
@@ -52,7 +47,7 @@ class Post
     }
 }
 
-// 2. Izpildīt LEFT JOIN vaicājumu, lai iegūtu plakanu masīvu
+// === Vaicājums ===
 $sql = "
 SELECT 
     p.post_id, p.title, p.content, 
@@ -61,16 +56,10 @@ FROM posts p
 LEFT JOIN comments c ON p.post_id = c.post_id
 ";
 
-try {
-    $stmt = $pdo->query($sql);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Vaicājuma kļūda: " . $e->getMessage());
-}
+$stmt = $pdo->query($sql);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 3. Pārveidot plakano masīvu uz hierarhisku asociatīvo masīvu
 $posts = [];
-
 foreach ($rows as $row) {
     $post_id = $row['post_id'];
 
@@ -79,22 +68,21 @@ foreach ($rows as $row) {
     }
 
     if (!empty($row['comment_id'])) {
-        $comment = new Comment($row['comment_content']);
-        $posts[$post_id]->addComment($comment);
+        $posts[$post_id]->addComment(new Comment($row['comment_content']));
     }
 }
 
-// 4. Ģenerēt HTML sarakstu no asociatīvā masīva
 echo "<html><head><title>Ziņas un komentāri</title></head><body>";
-echo "<ol>";
-
+echo "<h1>Ziņas</h1><ol>";
 foreach ($posts as $post) {
     $post->display();
 }
-
 echo "</ol>";
+
+// === Forma ===
+require_once 'form.php';
+
 echo "</body></html>";
 
-// 5. Aizvērt PDO savienojumu (nav obligāti, bet ieteicams)
 $pdo = null;
 ?>
